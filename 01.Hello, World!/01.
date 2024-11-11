@@ -1,23 +1,23 @@
-First, some background
-Assembly language is bare-bones. The only interface a programmer has above the actual hardware is the kernel itself. In order to build useful programs in assembly we need to use the linux system calls provided by the kernel. These system calls are a library built into the operating system to provide functions such as reading input from a keyboard and writing output to the screen.
+먼저, 배경 지식부터 시작하겠습니다.
+어셈블리 언어는 가장 기본적인 언어입니다. 프로그래머가 실제 하드웨어 위에 가지고 있는 유일한 인터페이스는 커널 자체입니다. 어셈블리로 유용한 프로그램을 만들기 위해서는 커널이 제공하는 리눅스 시스템 호출을 사용해야 합니다. 이러한 시스템 호출은 운영 체제에 내장된 라이브러리로 키보드로부터 입력을 읽거나 화면에 출력을 쓰는 등의 기능을 제공합니다.
 
-When you invoke a system call the kernel will immediately suspend execution of your program. It will then contact the necessary drivers needed to perform the task you requested on the hardware and then return control back to your program.
+시스템 호출을 호출하면 커널은 즉시 프로그램의 실행을 일시 중단합니다. 그런 다음 하드웨어에서 요청한 작업을 수행하는 데 필요한 드라이버에 연락하고, 작업이 완료되면 프로그램의 제어를 다시 반환합니다.
 
-Note: Drivers are called drivers because the kernel literally uses them to drive the hardware.
+참고: 드라이버는 커널이 실제로 하드웨어를 구동하기 위해 사용하기 때문에 드라이버라고 불립니다.
 
-We can accomplish this all in assembly by loading EAX with the function number (operation code OPCODE) we want to execute and filling the remaining registers with the arguments we want to pass to the system call. A software interrupt is requested with the INT instruction and the kernel takes over and calls the function from the library with our arguments. Simple.
+어셈블리에서는 실행하고자 하는 함수 번호(연산 코드 OPCODE)를 EAX에 로드하고, 시스템 호출에 전달할 인수로 나머지 레지스터를 채워 이 모든 것을 수행할 수 있습니다. INT 명령어로 소프트웨어 인터럽트를 요청하면 커널이 우리의 인수를 사용하여 라이브러리의 함수를 호출하게 됩니다. 간단합니다.
 
-For example requesting an interrupt when EAX=1 will call sys_exit and requesting an interrupt when EAX=4 will call sys_write instead. EBX, ECX & EDX will be passed as arguments if the function requires them. Click here to view an example of a Linux System Call Table and its corresponding OPCODES.
+예를 들어 EAX=1로 인터럽트를 요청하면 sys_exit를 호출하고, EAX=4로 요청하면 sys_write를 호출합니다. 함수에 인수가 필요한 경우 EBX, ECX 및 EDX가 인수로 전달됩니다. 리눅스 시스템 호출 테이블과 해당 OPCODE의 예를 보려면 여기를 클릭하십시오.
 
-Writing our program
-Firstly we create a variable 'msg' in our .data section and assign it the string we want to output in this case 'Hello, world!'. In our .text section we tell the kernel where to begin execution by providing it with a global label _start: to denote the programs entry point.
+프로그램 작성하기
+먼저 .data 섹션에 'msg'라는 변수를 생성하고, 출력하려는 문자열인 'Hello, world!'를 할당합니다. .text 섹션에서는 프로그램의 진입점을 나타내기 위해 글로벌 레이블 _start:를 제공하여 커널에 실행을 어디서부터 시작할지 알려줍니다.
 
-We will be using the system call sys_write to output our message to the console window. This function is assigned OPCODE 4 in the Linux System Call Table. The function also takes 3 arguments which are sequentially loaded into EDX, ECX and EBX before requesting a software interrupt which will perform the task.
+콘솔 창에 메시지를 출력하기 위해 sys_write 시스템 호출을 사용할 것입니다. 이 함수는 리눅스 시스템 호출 테이블에서 OPCODE 4로 할당되어 있습니다. 이 함수는 또한 3개의 인수를 받으며, 이는 작업을 수행하기 전에 EDX, ECX 및 EBX에 순서대로 로드됩니다.
 
-The arguments passed are as follows:
+전달되는 인수는 다음과 같습니다:
 
-EDX will be loaded with the length (in bytes) of the string.
-ECX will be loaded with the address of our variable created in the .data section.
-EBX will be loaded with the file we want to write to – in this case STDOUT.
-The datatype and meaning of the arguments passed can be found in the function's definition.
-We compile, link and run the program using the commands below.
+EDX는 문자열의 길이(바이트 단위)로 로드됩니다.
+ECX는 .data 섹션에서 생성한 변수의 주소로 로드됩니다.
+EBX는 쓰려는 파일로 로드되며, 이 경우 STDOUT입니다.
+인수의 데이터 타입과 의미는 함수의 정의에서 찾을 수 있습니다.
+아래 명령어를 사용하여 프로그램을 컴파일, 링크 및 실행합니다.
